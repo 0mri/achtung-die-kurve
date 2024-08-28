@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Achtung, die Kurve!</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        canvas {
+            border: 1px solid black;
+        }
+    </style>
+</head>
+<body>
+<canvas id="gameCanvas" width="600" height="600"></canvas>
+<script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+
+    const player1 = {
+        x: 300,
+        y: 300,
+        direction: 0,
+        speed: 2,
+        sensitivity: 0.1,
+        trail: []
+    };
+
+    let keyState = {};
+
+    window.addEventListener('keydown', function(e) {
+        keyState[e.key] = true;
+    });
+
+    window.addEventListener('keyup', function(e) {
+        keyState[e.key] = false;
+    });
+
+    function update() {
+        if (keyState["ArrowLeft"]) player1.direction -= player1.sensitivity;
+        if (keyState["ArrowRight"]) player1.direction += player1.sensitivity;
+
+        player1.x += Math.cos(player1.direction) * player1.speed;
+        player1.y += Math.sin(player1.direction) * player1.speed;
+
+        if (player1.x < 0 || player1.x >= canvas.width || player1.y < 0 || player1.y >= canvas.height ||
+            player1.trail.some(t => t.x === Math.floor(player1.x) && t.y === Math.floor(player1.y))) {
+            alert("Game Over!");
+            player1.x = 300;
+            player1.y = 300;
+            player1.direction = 0;
+            player1.trail = [];
+        }
+
+        player1.trail.push({ x: Math.floor(player1.x), y: Math.floor(player1.y) });
+        if (player1.trail.length > 100) player1.trail.shift();
+    }
+
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = "black";
+        player1.trail.forEach(t => {
+            ctx.fillRect(t.x, t.y, 2, 2);
+        });
+    }
+
+    function gameLoop() {
+        update();
+        draw();
+        requestAnimationFrame(gameLoop);
+    }
+
+    gameLoop();
+</script>
+</body>
+</html>
